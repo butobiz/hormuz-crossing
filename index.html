@@ -2,11 +2,11 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <title>Hormuz Crossing - Epic Modern</title> 
         
     <link rel="icon" type="image/png" href="favicon.png">
-
     <link rel="apple-touch-icon" href="favicon.png">
     <meta name="apple-mobile-web-app-title" content="Hormuz">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,12 +16,24 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap');
 
+        /* === GLOBAL MOBILE RESET (ANTI-ZOOM, ANTI-COPY, ANTI-HIGHLIGHT) === */
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;  
+            -khtml-user-select: none;   
+            -moz-user-select: none;     
+            -ms-user-select: none;      
+            user-select: none;          
+            -webkit-tap-highlight-color: transparent; 
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0f172a;
             color: #f8fafc;
             overflow: hidden; 
-            touch-action: none;
+            touch-action: none; 
+            overscroll-behavior: none; 
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         }
 
@@ -32,7 +44,6 @@
             transition: filter 0.3s;
         }
 
-        /* Filter saat jamur menyusut aktif */
         .shrink-active { filter: hue-rotate(45deg) saturate(150%); }
 
         .hide-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -42,11 +53,7 @@
             border-radius: 10px;
         }
 
-        button, select {
-            touch-action: manipulation; 
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-        }
+        button, select { outline: none; }
 
         @keyframes floatIn {
             from { opacity: 0; transform: translateY(20px) scale(0.95); }
@@ -63,18 +70,21 @@
         }
         .shake-active { animation: shake 0.4s ease-in-out; }
 
-        /* Mascot Bounce */
         @keyframes mascotBounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
         .mascot-anim { animation: mascotBounce 1s infinite; }
+        
+        /* Smooth Analog Snapback transition */
+        .snap-back { transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1); }
     </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col items-center justify-between py-2 sm:py-6 relative">
 
     <div id="game-wrapper" class="relative w-full max-w-md aspect-square bg-slate-900 border border-slate-700/50 rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/20 flex flex-col shrink-0">
         
+        <!-- Header Info -->
         <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
             <div class="flex flex-col gap-2">
                 <div class="flex gap-2 flex-wrap max-w-[200px]">
@@ -88,6 +98,7 @@
                         ❤️ <span id="lives-ui" class="font-bold">3</span>
                     </div>
                 </div>
+                <!-- Interactive Mascot -->
                 <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700 w-12 h-12 rounded-2xl flex flex-col items-center justify-center shadow-md mascot-anim mt-1">
                     <span id="mascot-emoji" class="text-2xl transition-all">🐦</span>
                 </div>
@@ -101,15 +112,18 @@
             </div>
         </div>
 
-        <div id="skill-cd-ui" class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md border border-slate-600 px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-300 shadow-lg z-10 hidden">
+        <!-- Cooldown Indicator UI -->
+        <div id="skill-cd-ui" class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md border border-slate-600 px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-300 shadow-lg z-10 hidden">
             SKILL: <span id="cd-text" class="text-sky-400 ml-1">READY</span>
         </div>
 
+        <!-- Layar Mulai / Menu -->
         <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/60 z-20 backdrop-blur-md p-4">
-            <div class="animate-float-in bg-slate-800/90 border border-slate-700/50 shadow-2xl rounded-[2rem] p-6 w-full max-w-[320px] flex flex-col items-center">
+            <div class="animate-float-in bg-slate-800/90 border border-slate-700/50 shadow-2xl rounded-[2rem] p-6 w-full max-w-[320px] flex flex-col items-center pointer-events-auto">
                 <h1 class="font-heading text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 font-extrabold text-4xl mb-1 text-center leading-tight tracking-tight">Hormuz<br>Crossing</h1>
-                <p class="text-slate-400 mb-5 text-center text-[11px] font-medium">Lengkap dengan Hero Skill & Announcer!</p>
+                <p class="text-slate-400 mb-5 text-center text-[11px] font-medium">Lengkap dengan Hero Skill & Analog Control!</p>
                 
+                <!-- Economy & Shop UI -->
                 <div class="flex gap-2 mb-6 w-full justify-center">
                     <button id="btn-shop-speedboat" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl p-2 flex flex-col items-center hover:bg-slate-700 transition-all relative">
                         <span class="text-2xl mb-1 drop-shadow-md">🚤</span>
@@ -138,8 +152,9 @@
             </div>
         </div>
 
+        <!-- Layar Game Over -->
         <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/70 z-20 hidden backdrop-blur-md p-4">
-            <div class="animate-float-in bg-slate-800/95 border border-slate-700/80 shadow-2xl rounded-[2rem] p-8 w-full max-w-[280px] flex flex-col items-center text-center">
+            <div class="animate-float-in bg-slate-800/95 border border-slate-700/80 shadow-2xl rounded-[2rem] p-8 w-full max-w-[280px] flex flex-col items-center text-center pointer-events-auto">
                 <div class="text-5xl mb-3">💥</div>
                 <h2 class="font-heading text-white text-3xl font-extrabold mb-1">KANDAS</h2>
                 <p class="text-slate-400 mb-6 text-sm">Skor Akhir: <span id="final-score" class="text-white font-bold text-lg ml-1">0</span></p>
@@ -155,35 +170,48 @@
             </div>
         </div>
 
+        <!-- Canvas Game -->
         <canvas id="game-canvas" class="w-full h-full flex-grow rounded-b-3xl"></canvas>
     </div>
 
-    <div class="mt-auto mb-4 flex gap-4 items-end sm:hidden z-30 w-full max-w-[320px] px-2">
-        <div class="grid grid-cols-3 gap-2 w-[200px]">
-            <div class="col-start-2">
-                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-up">▲</button>
-            </div>
-            <div class="col-start-1 row-start-2">
-                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-left">◀</button>
-            </div>
-            <div class="col-start-2 row-start-2">
-                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-down">▼</button>
-            </div>
-            <div class="col-start-3 row-start-2">
-                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-right">▶</button>
-            </div>
-        </div>
-        <button id="btn-skill" class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 border-2 border-amber-200 rounded-full flex flex-col items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.5)] active:scale-90 transition-all ml-auto">
-            <span class="text-2xl drop-shadow-md">⚡</span>
-            <span class="text-[8px] font-bold text-white leading-none">SKILL</span>
+    <!-- === KONTROL MOBILE (SKILL KIRI, ANALOG KANAN) === -->
+    <div class="mt-auto mb-4 flex justify-between items-center sm:hidden z-30 w-full max-w-md px-8">
+        
+        <!-- Skill Button (KIRI) -->
+        <button id="btn-skill" class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 border-2 border-amber-200 rounded-full flex flex-col items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.5)] active:scale-90 transition-transform pointer-events-auto select-none" style="touch-action: manipulation;">
+            <span class="text-2xl drop-shadow-md pointer-events-none">⚡</span>
+            <span class="text-[8px] font-bold text-white leading-none pointer-events-none">SKILL</span>
         </button>
+
+        <!-- ANALOG JOYSTICK (KANAN) ala Mobile Legends -->
+        <div id="joystick-zone" class="relative w-32 h-32 bg-slate-800/80 backdrop-blur-md border-[3px] border-slate-600/80 rounded-full flex items-center justify-center shadow-lg select-none pointer-events-auto" style="touch-action: none;">
+            <div id="joystick-knob" class="absolute w-12 h-12 bg-sky-500 rounded-full shadow-[0_0_20px_rgba(56,189,248,0.8)] border-2 border-sky-200 pointer-events-none snap-back" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        </div>
+
     </div>
 
-    <div class="mt-2 text-xs text-slate-500 font-medium hidden sm:block text-center">
-        Gerak: <b>PANAH / WASD</b> &nbsp;|&nbsp; Skill Hero: <b>SPASI</b>
+    <div class="mt-2 text-xs text-slate-500 font-medium hidden sm:block text-center mb-4">
+        Gerak: <b>WASD / PANAH</b> &nbsp;|&nbsp; Skill Hero: <b>SPASI</b>
     </div>
 
     <script>
+        // === CEGAH ZOOM & SCROLL NAKAL DI BROWSER MOBILE ===
+        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+        document.addEventListener('touchmove', function(e) {
+            if(!e.target.closest('#start-screen')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) event.preventDefault();
+            lastTouchEnd = now;
+        }, { passive: false });
+
+
+        // === SETUP GAME ===
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const gameWrapper = document.getElementById('game-wrapper');
@@ -202,7 +230,7 @@
         let isPlaying = false;
         let lives = 3;
         
-        // --- AUDIO & ANNOUNCER SYSTEM (Web Speech API + Web Audio) ---
+        // --- AUDIO & ANNOUNCER ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
         let isMuted = false;
@@ -219,15 +247,13 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // Announcer System
         function announce(text, priority = false) {
             if (isMuted || !synth) return;
-            if (priority) synth.cancel(); // Potong antrian jika penting (mati/level up)
-            
+            if (priority) synth.cancel(); 
             const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.pitch = 1.3; // Suara agak tinggi biar excited
-            utterThis.rate = 1.3;  // Tempo cepat ala arcade
-            utterThis.lang = 'en-US'; // Pakai bahasa inggris agar pelafalan "Awesome" keren
+            utterThis.pitch = 1.3; 
+            utterThis.rate = 1.3;  
+            utterThis.lang = 'en-US'; 
             synth.speak(utterThis);
         }
 
@@ -259,7 +285,7 @@
                 osc.type = 'square'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.4);
                 gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.4);
                 osc.start(now); osc.stop(now + 0.4);
-            } else if (name === 'shoot') { // Meriam Bajak Laut
+            } else if (name === 'shoot') { 
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
                 gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
                 osc.start(now); osc.stop(now + 0.2);
@@ -272,9 +298,9 @@
         let activeSkin = localStorage.getItem('hormuz_active_skin') || 'speedboat';
 
         const skinsData = {
-            'speedboat': { icon: '🚤', price: 0, width: 50, skillType: 'dash', cooldown: 300 }, // 300 frames = 5 detik
-            'duck': { icon: '🦆', price: 50, width: 35, skillType: 'dive', cooldown: 600 }, // 10 detik
-            'pirate': { icon: '🏴‍☠️', price: 100, width: 55, skillType: 'cannon', cooldown: 480 } // 8 detik
+            'speedboat': { icon: '🚤', price: 0, width: 50, skillType: 'dash', cooldown: 300 }, 
+            'duck': { icon: '🦆', price: 50, width: 35, skillType: 'dive', cooldown: 600 }, 
+            'pirate': { icon: '🏴‍☠️', price: 100, width: 55, skillType: 'cannon', cooldown: 480 } 
         };
 
         function updateShopUI() {
@@ -304,17 +330,14 @@
                 if (mySkins.includes(id)) {
                     activeSkin = id;
                     localStorage.setItem('hormuz_active_skin', activeSkin);
-                    playSfx('start');
-                    announce("Selected!");
+                    playSfx('start'); announce("Selected!");
                 } else if (myCoins >= skinsData[id].price) {
                     myCoins -= skinsData[id].price;
-                    mySkins.push(id);
-                    activeSkin = id;
+                    mySkins.push(id); activeSkin = id;
                     localStorage.setItem('hormuz_coins', myCoins);
                     localStorage.setItem('hormuz_skins', JSON.stringify(mySkins));
                     localStorage.setItem('hormuz_active_skin', activeSkin);
-                    playSfx('powerup');
-                    announce("Unlocked!");
+                    playSfx('powerup'); announce("Unlocked!");
                 } else {
                     playSfx('crash'); 
                 }
@@ -328,97 +351,55 @@
         canvas.width = GAME_WIDTH;
         canvas.height = GAME_HEIGHT;
 
-        // Variabel Game
-        let score = 0;
-        let level = 1;
+        let score = 0, level = 1;
         const rows = 11; 
         const rowHeight = GAME_HEIGHT / rows;
         
-        let combo = 0;
-        let comboTimer = 0;
-        let floatingTexts = [];
-        let mascotStateTimer = 0;
+        let combo = 0, comboTimer = 0, floatingTexts = [], mascotStateTimer = 0;
 
-        // Entitas Pemain
         let player = {
-            x: GAME_WIDTH / 2 - 20,
-            y: GAME_HEIGHT - rowHeight + 10,
+            x: GAME_WIDTH / 2 - 20, y: GAME_HEIGHT - rowHeight + 10,
             width: 50, height: 50, speed: 5,
-            hasShield: false,
-            skillCooldown: 0,
-            skillActiveTimer: 0,
-            isDiving: false, // Untuk skill bebek
-            invulnerableTimer: 0 // Waktu kebal (kedap-kedip)
+            hasShield: false, skillCooldown: 0, skillActiveTimer: 0,
+            isDiving: false, invulnerableTimer: 0,
+            angle: Math.PI / 2 // Dynamic Rotation angle
         };
 
-        let obstacles = [];
-        let items = [];
-        let waterParticles = [];
-        let projectiles = []; // Untuk skill meriam bajak laut
-        let shrinkTimer = 0; // Untuk powerup konyol jamur
+        let obstacles = [], items = [], waterParticles = [], projectiles = [], shrinkTimer = 0; 
 
         function changeMascot(emoji, durationStr = 60) {
-            mascotEmoji.innerText = emoji;
-            mascotStateTimer = durationStr;
+            mascotEmoji.innerText = emoji; mascotStateTimer = durationStr;
         }
 
         function initLevel() {
-            obstacles = [];
-            items = [];
-            projectiles = [];
-            floatingTexts = [];
-            waterParticles = [];
-            shrinkTimer = 0;
-            
-            // FIX BUG JAMUR: Paksa hapus efek filter ungu setiap kali level di-reset / naik level
+            obstacles = []; items = []; projectiles = []; floatingTexts = []; waterParticles = []; shrinkTimer = 0;
             gameWrapper.classList.remove('shrink-active'); 
             
-            // TINGKAT KESULITAN BERTAHAP (Progressive Difficulty)
-            // Kecepatan dasar dimulai dari sangat pelan (1.2) dan naik pelan-pelan
             const baseSpeed = 1.2 + (level * 0.3); 
             
             for (let i = 1; i < rows - 1; i++) {
                 const direction = i % 2 === 0 ? 1 : -1;
                 const isTanker = i % 3 === 0;
                 const width = isTanker ? 100 : 60; 
-                
-                // Jarak (Gap) antar kapal lebih renggang di level awal, dan makin rapat di level tinggi
                 const gap = isTanker ? Math.max(260, 450 - (level * 20)) : Math.max(180, 300 - (level * 15)); 
-                
-                // Jumlah kapal bertambah seiring level
-                let numObstacles;
-                if (isTanker) {
-                    numObstacles = level <= 2 ? 1 : 2; // Lvl 1-2: Cuma 1 Tanker. Lvl 3+: 2 Tanker.
-                } else {
-                    numObstacles = level === 1 ? 2 : 3; // Lvl 1: 2 Patroli. Lvl 2+: 3 Patroli.
-                }
-                
-                // Variasi kecepatan acak (agar pola tidak terlalu kaku) juga bertahap
-                const speedVar = Math.min(2, level * 0.2);
-                const speed = (baseSpeed + Math.random() * speedVar) * direction;
+                let numObstacles = isTanker ? (level <= 2 ? 1 : 2) : (level === 1 ? 2 : 3);
+                const speed = (baseSpeed + Math.random() * Math.min(2, level * 0.2)) * direction;
                 
                 for (let j = 0; j < numObstacles; j++) {
                     obstacles.push({
                         x: j * gap, y: i * rowHeight + 10,
                         baseWidth: width, width: width, height: rowHeight - 20,
-                        speed: speed, isTanker: isTanker, passed: false,
-                        dead: false
+                        speed: speed, isTanker: isTanker, passed: false, dead: false
                     });
                 }
 
-                // Peluang Spawn Item (Koin, Shield, Jamur Shrink, Nyawa/Heart)
-                const itemSpawnRate = level <= 2 ? 0.6 : 0.45; 
-                if (Math.random() < itemSpawnRate) {
+                if (Math.random() < (level <= 2 ? 0.6 : 0.45)) {
                     const r = Math.random();
                     let type = 'coin', icon = '🪙';
                     if (r < 0.15) { type = 'shield'; icon = '🛡️'; }
                     else if (r < 0.25) { type = 'shrink'; icon = '🍄'; } 
-                    else if (r < 0.30) { type = 'heart'; icon = '❤️'; } // 5% peluang drop Nyawa
-
-                    items.push({
-                        x: Math.random() * GAME_WIDTH, y: i * rowHeight + 20,
-                        speed: speed * 0.6, type: type, icon: icon, width: 35
-                    });
+                    else if (r < 0.30) { type = 'heart'; icon = '❤️'; } 
+                    items.push({ x: Math.random() * GAME_WIDTH, y: i * rowHeight + 20, speed: speed * 0.6, type: type, icon: icon, width: 35 });
                 }
             }
         }
@@ -428,11 +409,9 @@
             player.width = skin.width;
             player.x = GAME_WIDTH / 2 - player.width / 2;
             player.y = GAME_HEIGHT - rowHeight + 10;
-            player.hasShield = false;
-            player.skillCooldown = 0;
-            player.skillActiveTimer = 0;
-            player.isDiving = false;
-            player.invulnerableTimer = 120; // 2 Detik kebal setiap kali reset posisi
+            player.hasShield = false; player.skillCooldown = 0; player.skillActiveTimer = 0;
+            player.isDiving = false; player.invulnerableTimer = 120; 
+            player.angle = Math.PI / 2; // Kembali menghadap lurus ke atas
             updateSkillUI();
         }
 
@@ -448,190 +427,191 @@
 
         function activateSkill() {
             if (player.skillCooldown > 0 || !isPlaying) return;
-            
             const skin = skinsData[activeSkin];
             player.skillCooldown = skin.cooldown;
             
             if (skin.skillType === 'dash') {
-                player.skillActiveTimer = 60; // Dash 1 detik
-                playSfx('powerup');
-                addFloatingText("TURBO DASH!", player.x, player.y, "#38bdf8");
-                changeMascot("🚀", 60);
-            } 
-            else if (skin.skillType === 'dive') {
-                player.isDiving = true;
-                player.skillActiveTimer = 120; // Menyelam 2 detik
-                playSfx('powerup');
-                addFloatingText("DIVE!", player.x, player.y, "#10b981");
-                changeMascot("🤿", 120);
-            }
-            else if (skin.skillType === 'cannon') {
+                player.skillActiveTimer = 60; 
+                playSfx('powerup'); addFloatingText("TURBO DASH!", player.x, player.y, "#38bdf8"); changeMascot("🚀", 60);
+            } else if (skin.skillType === 'dive') {
+                player.isDiving = true; player.skillActiveTimer = 120; 
+                playSfx('powerup'); addFloatingText("DIVE!", player.x, player.y, "#10b981"); changeMascot("🤿", 120);
+            } else if (skin.skillType === 'cannon') {
                 playSfx('shoot');
-                projectiles.push({ x: player.x + player.width/2, y: player.y, speed: 12, radius: 10 });
-                addFloatingText("FIRE!", player.x, player.y, "#ef4444");
-                changeMascot("💣", 40);
+                // Tembak meriam ke arah depan kapal saat ini
+                const fireX = player.x + player.width/2;
+                const fireY = player.y + player.height/2;
+                // Hitung arah meriam berdasarkan rotasi
+                const projVx = Math.cos(player.angle - Math.PI) * 12;
+                const projVy = Math.sin(player.angle - Math.PI) * 12;
+                projectiles.push({ x: fireX, y: fireY, vx: projVx, vy: projVy, radius: 10 });
+                
+                addFloatingText("FIRE!", player.x, player.y, "#ef4444"); changeMascot("💣", 40);
             }
             updateSkillUI();
         }
 
         function startGame() {
-            initAudio();
-            playSfx('start');
-            announce("Start Game!", true);
+            initAudio(); playSfx('start'); announce("Start Game!", true);
             score = 0; level = 1; combo = 0; lives = 3;
             scoreEl.innerText = score; levelEl.innerText = level; livesUi.innerText = lives;
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            skillCdUi.classList.remove('hidden');
-            gameWrapper.classList.remove('shake-active'); 
-            gameWrapper.classList.remove('shrink-active');
-            changeMascot("🐦");
-            resetPlayer();
-            initLevel();
-            isPlaying = true;
-            gameLoop();
+            startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden');
+            skillCdUi.classList.remove('hidden'); gameWrapper.classList.remove('shake-active', 'shrink-active');
+            changeMascot("🐦"); resetPlayer(); initLevel(); isPlaying = true; gameLoop();
         }
 
         function gameOver() {
-            isPlaying = false;
-            cancelAnimationFrame(animationId);
-            playSfx('crash');
-            announce("Game Over!", true);
-            changeMascot("😵", 9999);
-            skillCdUi.classList.add('hidden');
-            finalScoreEl.innerText = score;
+            isPlaying = false; cancelAnimationFrame(animationId);
+            playSfx('crash'); announce("Game Over!", true); changeMascot("😵", 9999);
+            skillCdUi.classList.add('hidden'); finalScoreEl.innerText = score;
             gameOverScreen.classList.remove('hidden');
             gameWrapper.classList.add('shake-active');
             setTimeout(() => { gameWrapper.classList.remove('shake-active'); }, 400);
         }
 
-        // Fungsi kehilangan nyawa (tapi belum Game Over)
         function loseLife() {
-            lives--;
-            livesUi.innerText = lives;
-            playSfx('crash');
-            announce("Ouch!", true);
-            changeMascot("🤕", 60);
+            lives--; livesUi.innerText = lives;
+            playSfx('crash'); announce("Ouch!", true); changeMascot("🤕", 60);
             gameWrapper.classList.add('shake-active');
             setTimeout(() => gameWrapper.classList.remove('shake-active'), 400);
-            
-            combo = 0; // Reset kombo
-            resetPlayer(); // Kembalikan ke posisi awal dan beri I-Frame
-            addFloatingText("-1 ❤️", player.x, player.y, "#ef4444");
+            combo = 0; resetPlayer(); addFloatingText("-1 ❤️", player.x, player.y, "#ef4444");
         }
 
         function levelUp() {
-            playSfx('start');
-            announce("Level Up!", true);
-            changeMascot("😎", 90);
-            score += 100; level++;
-            scoreEl.innerText = score; levelEl.innerText = level;
-            resetPlayer();
-            initLevel();
-            addFloatingText("LEVEL UP!", player.x, GAME_HEIGHT/2, "#38bdf8");
+            playSfx('start'); announce("Level Up!", true); changeMascot("😎", 90);
+            score += 100; level++; scoreEl.innerText = score; levelEl.innerText = level;
+            resetPlayer(); initLevel(); addFloatingText("LEVEL UP!", player.x, GAME_HEIGHT/2, "#38bdf8");
         }
         
-        function addFloatingText(text, x, y, color) {
-            floatingTexts.push({ text, x, y, color, life: 60 });
-        }
+        function addFloatingText(text, x, y, color) { floatingTexts.push({ text, x, y, color, life: 60 }); }
 
-        // Input Setup
+        // === INPUT KEYBOARD ===
         const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false };
-        
         window.addEventListener('keydown', (e) => {
             if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
             if(e.code === 'Space' && isPlaying) { e.preventDefault(); activateSkill(); }
         });
-        window.addEventListener('keyup', (e) => {
-            if(keys.hasOwnProperty(e.key)) keys[e.key] = false;
-        });
+        window.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-        // Kontrol Mobile
-        const handleTouchStart = (dir) => { keys[dir] = true; };
-        const handleTouchEnd = (dir) => { keys[dir] = false; };
-        document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowUp'); });
-        document.getElementById('btn-up').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowUp'); });
-        document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowDown'); });
-        document.getElementById('btn-down').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowDown'); });
-        document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowLeft'); });
-        document.getElementById('btn-left').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowLeft'); });
-        document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowRight'); });
-        document.getElementById('btn-right').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowRight'); });
-        document.getElementById('btn-skill').addEventListener('touchstart', (e) => { e.preventDefault(); activateSkill(); });
+        // === SISTEM ANALOG JOYSTICK (SMOOTH 360) ===
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickKnob = document.getElementById('joystick-knob');
+        let joystick = { active: false, dx: 0, dy: 0, maxRadius: 40 };
+
+        function updateJoystick(touch) {
+            const rect = joystickZone.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            let diffX = touch.clientX - centerX;
+            let diffY = touch.clientY - centerY;
+            const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+            
+            // Batasi mentok di radius luar
+            if (distance > joystick.maxRadius) {
+                diffX = (diffX / distance) * joystick.maxRadius;
+                diffY = (diffY / distance) * joystick.maxRadius;
+            }
+
+            joystickKnob.style.transform = `translate(calc(-50% + ${diffX}px), calc(-50% + ${diffY}px))`;
+            
+            // Normalisasi output dari -1.0 sampai 1.0 untuk engine game
+            joystick.dx = diffX / joystick.maxRadius;
+            joystick.dy = diffY / joystick.maxRadius;
+        }
+
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystick.active = true;
+            joystickKnob.classList.remove('snap-back'); // Hilangkan animasi saat disentuh
+            updateJoystick(e.changedTouches[0]);
+        }, {passive: false});
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!joystick.active) return;
+            updateJoystick(e.changedTouches[0]);
+        }, {passive: false});
+
+        const resetJoystick = (e) => {
+            e.preventDefault();
+            joystick.active = false;
+            joystick.dx = 0;
+            joystick.dy = 0;
+            joystickKnob.classList.add('snap-back'); // Animasi membal ke tengah
+            joystickKnob.style.transform = `translate(-50%, -50%)`;
+        };
+
+        joystickZone.addEventListener('touchend', resetJoystick, {passive: false});
+        joystickZone.addEventListener('touchcancel', resetJoystick, {passive: false});
+        
+        // Skill button mobile tap
+        document.getElementById('btn-skill').addEventListener('touchstart', (e) => { 
+            e.preventDefault(); activateSkill(); 
+        }, {passive: false});
+
 
         function update() {
             if (!isPlaying) return;
 
-            // Mascot Logic
-            if (mascotStateTimer > 0) {
-                mascotStateTimer--;
-                if (mascotStateTimer === 0 && isPlaying) changeMascot("🐦");
-            }
+            if (mascotStateTimer > 0) { mascotStateTimer--; if (mascotStateTimer === 0 && isPlaying) changeMascot("🐦"); }
+            if (player.skillCooldown > 0) { player.skillCooldown--; if(player.skillCooldown % 60 === 0) updateSkillUI(); }
+            if (player.skillActiveTimer > 0) { player.skillActiveTimer--; if (player.skillActiveTimer === 0 && player.isDiving) player.isDiving = false; }
+            if (player.invulnerableTimer > 0) player.invulnerableTimer--;
+            if (shrinkTimer > 0) { shrinkTimer--; if (shrinkTimer === 0) { gameWrapper.classList.remove('shrink-active'); obstacles.forEach(obs => obs.width = obs.baseWidth); } }
+            if (comboTimer > 0) { comboTimer--; if (comboTimer === 0) combo = 0; }
 
-            // Skill Cooldown Logic
-            if (player.skillCooldown > 0) {
-                player.skillCooldown--;
-                if(player.skillCooldown % 60 === 0) updateSkillUI(); // Update UI text every second
-            }
-            if (player.skillActiveTimer > 0) {
-                player.skillActiveTimer--;
-                if (player.skillActiveTimer === 0 && player.isDiving) player.isDiving = false;
-            }
-            if (player.invulnerableTimer > 0) {
-                player.invulnerableTimer--;
-            }
+            for (let i = floatingTexts.length - 1; i >= 0; i--) { floatingTexts[i].y -= 1.5; floatingTexts[i].life--; if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1); }
+            for (let i = waterParticles.length - 1; i >= 0; i--) { waterParticles[i].y += 2; waterParticles[i].life -= 0.05; if(waterParticles[i].life <= 0) waterParticles.splice(i, 1); }
 
-            // Shrink PowerUp Logic
-            if (shrinkTimer > 0) {
-                shrinkTimer--;
-                if (shrinkTimer === 0) {
-                    gameWrapper.classList.remove('shrink-active');
-                    obstacles.forEach(obs => obs.width = obs.baseWidth);
-                }
-            }
-
-            if (comboTimer > 0) {
-                comboTimer--;
-                if (comboTimer === 0) combo = 0;
-            }
-
-            for (let i = floatingTexts.length - 1; i >= 0; i--) {
-                floatingTexts[i].y -= 1.5; floatingTexts[i].life--;
-                if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
-            }
-
-            for (let i = waterParticles.length - 1; i >= 0; i--) {
-                waterParticles[i].y += 2; waterParticles[i].life -= 0.05;
-                if(waterParticles[i].life <= 0) waterParticles.splice(i, 1);
-            }
-
-            // Projectiles Logic (Pirate Skill)
+            // Projectiles Logic (Pirate Skill) -> Kini meriam lurus sesuai arah tembak
             for (let i = projectiles.length - 1; i >= 0; i--) {
-                projectiles[i].y -= projectiles[i].speed;
-                // Cek tabrakan meriam ke kapal
+                projectiles[i].x += projectiles[i].vx;
+                projectiles[i].y += projectiles[i].vy;
                 let hit = false;
                 for (let j = 0; j < obstacles.length; j++) {
                     let obs = obstacles[j];
                     if (!obs.dead && projectiles[i].x > obs.x && projectiles[i].x < obs.x + obs.width &&
                         projectiles[i].y > obs.y && projectiles[i].y < obs.y + obs.height) {
-                        obs.dead = true;
-                        obs.y = -1000; // Hilangkan
-                        hit = true;
-                        playSfx('crash');
-                        addFloatingText("BOOM!", obs.x, obs.y, "#fbbf24");
-                        break;
+                        obs.dead = true; obs.y = -1000; hit = true; playSfx('crash');
+                        addFloatingText("BOOM!", obs.x, obs.y, "#fbbf24"); break;
                     }
                 }
-                if (hit || projectiles[i].y < 0) projectiles.splice(i, 1);
+                if (hit || projectiles[i].y < 0 || projectiles[i].x < 0 || projectiles[i].x > GAME_WIDTH) projectiles.splice(i, 1);
             }
 
+            // === LOGIKA PERGERAKAN BERDASARKAN ANALOG / KEYBOARD ===
             let currentSpeed = player.speed;
             if (player.skillActiveTimer > 0 && skinsData[activeSkin].skillType === 'dash') currentSpeed *= 2;
 
-            if (keys.ArrowUp || keys.w) player.y -= currentSpeed;
-            if (keys.ArrowDown || keys.s) player.y += currentSpeed;
-            if (keys.ArrowLeft || keys.a) player.x -= currentSpeed;
-            if (keys.ArrowRight || keys.d) player.x += currentSpeed;
+            let moveX = 0; let moveY = 0;
+
+            if (joystick.active) {
+                // Input Analog (Sangat smooth)
+                moveX = joystick.dx;
+                moveY = joystick.dy;
+            } else {
+                // Input Keyboard
+                if (keys.ArrowUp || keys.w) moveY -= 1;
+                if (keys.ArrowDown || keys.s) moveY += 1;
+                if (keys.ArrowLeft || keys.a) moveX -= 1;
+                if (keys.ArrowRight || keys.d) moveX += 1;
+                
+                // Normalisasi diagonal di keyboard agar tidak jalan terlalu cepat
+                if (moveX !== 0 && moveY !== 0) {
+                    const len = Math.sqrt(moveX*moveX + moveY*moveY);
+                    moveX /= len; moveY /= len;
+                }
+            }
+
+            player.x += moveX * currentSpeed;
+            player.y += moveY * currentSpeed;
+
+            // === DYNAMIC ROTATION (KAPAL MENGHADAP ARAH JALAN) ===
+            // Jika ada pergerakan, ubah angle kapal. (Ditambah PI karena Emoji standar hadap kiri)
+            if (moveX !== 0 || moveY !== 0) {
+                player.angle = Math.atan2(moveY, moveX) + Math.PI;
+            }
 
             if (player.x < 0) player.x = 0;
             if (player.x + player.width > GAME_WIDTH) player.x = GAME_WIDTH - player.width;
@@ -639,7 +619,6 @@
 
             if (player.y < rowHeight) levelUp();
 
-            // Item Logic
             for (let i = items.length - 1; i >= 0; i--) {
                 let item = items[i];
                 item.x += item.speed;
@@ -649,103 +628,52 @@
                 if (!player.isDiving && player.x < item.x + item.width && player.x + player.width > item.x &&
                     player.y < item.y + item.width && player.y + player.height > item.y) {
                     
-                    if (item.type === 'coin') {
-                        myCoins++;
-                        localStorage.setItem('hormuz_coins', myCoins);
-                        updateShopUI();
-                        playSfx('coin');
-                        addFloatingText("+1 🪙", player.x, player.y, "#fbbf24");
-                    } else if (item.type === 'shield') {
-                        player.hasShield = true;
-                        playSfx('powerup');
-                        addFloatingText("SHIELD! 🛡️", player.x, player.y, "#38bdf8");
-                        changeMascot("🛡️", 60);
-                    } else if (item.type === 'shrink') {
-                        shrinkTimer = 300; // 5 Detik
-                        gameWrapper.classList.add('shrink-active');
-                        playSfx('powerup');
-                        announce("Shrink!");
-                        addFloatingText("MINI MODE! 🍄", player.x, player.y, "#c084fc");
-                        changeMascot("🍄", 60);
-                        obstacles.forEach(obs => obs.width = obs.baseWidth / 2); // Susutkan lebar
-                    } else if (item.type === 'heart') {
-                        lives = Math.min(lives + 1, 5); // Nyawa maksimal 5
-                        livesUi.innerText = lives;
-                        playSfx('powerup');
-                        announce("Extra Life!");
-                        addFloatingText("+1 ❤️", player.x, player.y, "#f43f5e");
-                        changeMascot("😍", 60);
-                    }
+                    if (item.type === 'coin') { myCoins++; localStorage.setItem('hormuz_coins', myCoins); updateShopUI(); playSfx('coin'); addFloatingText("+1 🪙", player.x, player.y, "#fbbf24"); }
+                    else if (item.type === 'shield') { player.hasShield = true; playSfx('powerup'); addFloatingText("SHIELD! 🛡️", player.x, player.y, "#38bdf8"); changeMascot("🛡️", 60); } 
+                    else if (item.type === 'shrink') { shrinkTimer = 300; gameWrapper.classList.add('shrink-active'); playSfx('powerup'); announce("Shrink!"); addFloatingText("MINI MODE! 🍄", player.x, player.y, "#c084fc"); changeMascot("🍄", 60); obstacles.forEach(obs => obs.width = obs.baseWidth / 2); } 
+                    else if (item.type === 'heart') { lives = Math.min(lives + 1, 5); livesUi.innerText = lives; playSfx('powerup'); announce("Extra Life!"); addFloatingText("+1 ❤️", player.x, player.y, "#f43f5e"); changeMascot("😍", 60); }
                     items.splice(i, 1);
                 }
             }
 
-            // Obstacle Logic
             obstacles.forEach(obs => {
                 if(obs.dead) return;
                 obs.x += obs.speed;
                 if (obs.speed > 0 && obs.x > GAME_WIDTH) { obs.x = -obs.width; obs.passed = false; } 
                 else if (obs.speed < 0 && obs.x + obs.width < 0) { obs.x = GAME_WIDTH; obs.passed = false; }
 
-                if (player.isDiving) return; // Kebal kalau menyelam (Duck Skill)
+                if (player.isDiving) return; 
 
                 const tolerance = activeSkin === 'duck' ? 15 : 8;
-                const isCollide = (
-                    player.x + tolerance < obs.x + obs.width &&
-                    player.x + player.width - tolerance > obs.x &&
-                    player.y + tolerance < obs.y + obs.height &&
-                    player.y + player.height - tolerance > obs.y
-                );
+                const isCollide = ( player.x + tolerance < obs.x + obs.width && player.x + player.width - tolerance > obs.x && player.y + tolerance < obs.y + obs.height && player.y + player.height - tolerance > obs.y );
 
                 if (isCollide && player.invulnerableTimer <= 0) {
                     if (player.hasShield) {
-                        player.hasShield = false;
-                        obs.dead = true; obs.y = -1000; 
-                        playSfx('powerup'); announce("Watch out!");
-                        addFloatingText("SHIELD PECAH!", player.x, player.y, "#ef4444");
-                        gameWrapper.classList.add('shake-active');
-                        setTimeout(() => gameWrapper.classList.remove('shake-active'), 200);
-                        changeMascot("😨", 60);
-                        player.invulnerableTimer = 60; // Diberi 1 detik kebal setelah shield pecah
+                        player.hasShield = false; obs.dead = true; obs.y = -1000; playSfx('powerup'); announce("Watch out!");
+                        addFloatingText("SHIELD PECAH!", player.x, player.y, "#ef4444"); gameWrapper.classList.add('shake-active'); setTimeout(() => gameWrapper.classList.remove('shake-active'), 200); changeMascot("😨", 60); player.invulnerableTimer = 60; 
                     } else {
-                        // Cek Sisa Nyawa
-                        if (lives > 1) {
-                            loseLife();
-                        } else {
-                            lives = 0;
-                            livesUi.innerText = lives;
-                            gameOver();
-                        }
+                        if (lives > 1) loseLife();
+                        else { lives = 0; livesUi.innerText = lives; gameOver(); }
                     }
                 } 
                 else if (!obs.passed && player.y + player.height > obs.y && player.y < obs.y + obs.height) {
                     const dist = Math.abs((player.x + player.width/2) - (obs.x + obs.width/2));
                     if (dist < (player.width + obs.width)/2 + 25) {
-                        obs.passed = true;
-                        combo++; comboTimer = 180; 
-                        
-                        const mult = activeSkin === 'pirate' ? 1.2 : 1;
-                        const pts = Math.floor(50 * combo * mult);
-                        
-                        score += pts; scoreEl.innerText = score;
-                        playSfx('nearmiss');
-                        addFloatingText(`NYARIS! +${pts} 🔥`, player.x, player.y - 20, "#fbbf24");
-                        changeMascot("🦅", 40); // Mascot melotot/excited
-                        
-                        // Announcer bereaksi terhadap kombo
-                        if (combo === 3) announce("Awesome!");
-                        else if (combo === 5) announce("Unstoppable!");
+                        obs.passed = true; combo++; comboTimer = 180; 
+                        const pts = Math.floor(50 * combo * (activeSkin === 'pirate' ? 1.2 : 1));
+                        score += pts; scoreEl.innerText = score; playSfx('nearmiss'); addFloatingText(`NYARIS! +${pts} 🔥`, player.x, player.y - 20, "#fbbf24"); changeMascot("🦅", 40); 
+                        if (combo === 3) announce("Awesome!"); else if (combo === 5) announce("Unstoppable!");
                     }
                 }
             });
 
-            if(isPlaying && (keys.ArrowUp || keys.w || keys.ArrowDown || keys.s || keys.ArrowLeft || keys.a || keys.ArrowRight || keys.d)) {
+            if(isPlaying && (moveX !== 0 || moveY !== 0)) {
                 if(Math.random() > 0.5) {
                     waterParticles.push({
-                        x: player.x + player.width/2 + (Math.random()*10-5),
-                        y: player.y + player.height,
-                        radius: Math.random() * 4 + 2,
-                        life: 1.0
+                        // Partikel air keluar dari belakang kapal sesuai angle
+                        x: (player.x + player.width/2) + Math.cos(player.angle) * 20 + (Math.random()*10-5),
+                        y: (player.y + player.height/2) + Math.sin(player.angle) * 20 + (Math.random()*10-5),
+                        radius: Math.random() * 4 + 2, life: 1.0
                     });
                 }
             }
@@ -754,78 +682,47 @@
         function draw() {
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; 
-            ctx.fillRect(0, 0, GAME_WIDTH, rowHeight); 
-            ctx.fillRect(0, GAME_HEIGHT - rowHeight, GAME_WIDTH, rowHeight); 
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; ctx.fillRect(0, 0, GAME_WIDTH, rowHeight); ctx.fillRect(0, GAME_HEIGHT - rowHeight, GAME_WIDTH, rowHeight); 
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2; ctx.beginPath();
+            ctx.moveTo(0, rowHeight); ctx.lineTo(GAME_WIDTH, rowHeight); ctx.moveTo(0, GAME_HEIGHT - rowHeight); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - rowHeight); ctx.stroke();
 
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(0, rowHeight); ctx.lineTo(GAME_WIDTH, rowHeight);
-            ctx.moveTo(0, GAME_HEIGHT - rowHeight); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - rowHeight);
-            ctx.stroke();
+            ctx.font = "24px 'Inter', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(255,255,255,0.3)";
+            for(let w = 80; w < GAME_WIDTH; w += 160) { ctx.fillText("FINISH", w, rowHeight / 2); ctx.fillText("START", w, GAME_HEIGHT - rowHeight / 2); }
 
-            ctx.font = "24px 'Inter', sans-serif";
-            ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            ctx.fillStyle = "rgba(255,255,255,0.3)";
-            for(let w = 80; w < GAME_WIDTH; w += 160) {
-                ctx.fillText("FINISH", w, rowHeight / 2); 
-                ctx.fillText("START", w, GAME_HEIGHT - rowHeight / 2); 
-            }
-
-            items.forEach(item => {
-                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
-                ctx.font = "28px Arial"; ctx.fillText(item.icon, item.x + item.width/2, item.y + item.width/2);
-            });
+            items.forEach(item => { ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4; ctx.font = "28px Arial"; ctx.fillText(item.icon, item.x + item.width/2, item.y + item.width/2); });
 
             obstacles.forEach(obs => {
                 if(obs.dead) return;
                 ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 6;
-                // Ukuran font menyesuaikan jika menyusut (shrink powerup)
-                const isMini = shrinkTimer > 0;
-                ctx.font = `${obs.isTanker ? (isMini?40:70) : (isMini?30:50)}px Arial`;
-                ctx.save();
-                ctx.translate(obs.x + obs.width / 2, obs.y + obs.height / 2);
+                ctx.font = `${obs.isTanker ? (shrinkTimer > 0?40:70) : (shrinkTimer > 0?30:50)}px Arial`;
+                ctx.save(); ctx.translate(obs.x + obs.width / 2, obs.y + obs.height / 2);
                 if (obs.speed > 0) ctx.scale(-1, 1);
-                ctx.fillText(obs.isTanker ? "🚢" : "🛥️", 0, 0);
-                ctx.restore();
+                ctx.fillText(obs.isTanker ? "🚢" : "🛥️", 0, 0); ctx.restore();
             });
 
-            // Draw Projectiles
             projectiles.forEach(p => {
-                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 5;
-                ctx.fillStyle = "#333";
+                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 5; ctx.fillStyle = "#333";
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#ff4500"; // Api kecil di belakang meriam
-                ctx.beginPath(); ctx.arc(p.x, p.y + p.radius, p.radius/2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#ff4500"; ctx.beginPath(); ctx.arc(p.x, p.y + p.radius, p.radius/2, 0, Math.PI*2); ctx.fill();
             });
 
             ctx.shadowColor = "transparent";
-            waterParticles.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${p.life * 0.5})`; ctx.fill();
-            });
+            waterParticles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(255, 255, 255, ${p.life * 0.5})`; ctx.fill(); });
 
-            // Player Render
-            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
-            ctx.font = "45px Arial";
+            // GAMBAR PEMAIN DENGAN DYNAMIC ROTATION
+            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5; ctx.font = "45px Arial";
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
-            ctx.rotate(Math.PI / 2);
+            ctx.rotate(player.angle); // Rotasi mengikuti arah jalan analog!
             
-            if (player.isDiving) {
-                ctx.globalAlpha = 0.4; // Transparan jika menyelam
-            } else if (player.invulnerableTimer > 0) {
-                // Efek kedap-kedip saat kebal (invulnerable)
-                if (Math.floor(Date.now() / 150) % 2 === 0) ctx.globalAlpha = 0.5;
-            }
+            if (player.isDiving) { ctx.globalAlpha = 0.4; } 
+            else if (player.invulnerableTimer > 0) { if (Math.floor(Date.now() / 150) % 2 === 0) ctx.globalAlpha = 0.5; }
             
             ctx.fillText(skinsData[activeSkin].icon, 0, 0);
 
             if (player.hasShield && !player.isDiving) {
-                ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI * 2);
-                ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
-                const grad = ctx.createLinearGradient(-30, -30, 30, 30);
-                grad.addColorStop(0, "rgba(255, 255, 255, 0.4)"); grad.addColorStop(1, "rgba(56, 189, 248, 0.1)");
+                ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI * 2); ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
+                const grad = ctx.createLinearGradient(-30, -30, 30, 30); grad.addColorStop(0, "rgba(255, 255, 255, 0.4)"); grad.addColorStop(1, "rgba(56, 189, 248, 0.1)");
                 ctx.fillStyle = grad; ctx.fill();
             }
             ctx.restore();
@@ -833,31 +730,20 @@
             ctx.shadowColor = "transparent"; ctx.globalAlpha = 1.0;
             
             floatingTexts.forEach(ft => {
-                ctx.globalAlpha = ft.life / 60; 
-                ctx.fillStyle = ft.color;
-                ctx.font = "bold 20px 'Inter', sans-serif";
+                ctx.globalAlpha = ft.life / 60; ctx.fillStyle = ft.color; ctx.font = "bold 20px 'Inter', sans-serif";
                 ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
                 ctx.fillText(ft.text, ft.x + player.width/2, ft.y);
                 ctx.globalAlpha = 1.0; ctx.shadowColor = "transparent"; 
             });
         }
 
-        function gameLoop() {
-            update(); draw();
-            if (isPlaying) animationId = requestAnimationFrame(gameLoop);
-        }
+        function gameLoop() { update(); draw(); if (isPlaying) animationId = requestAnimationFrame(gameLoop); }
 
         document.getElementById('start-btn').addEventListener('click', startGame);
         document.getElementById('restart-btn').addEventListener('click', startGame);
-        
         document.getElementById('menu-btn').addEventListener('click', () => {
-            initAudio(); playSfx('start');
-            gameOverScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
-            skillCdUi.classList.add('hidden'); changeMascot("🐦");
-            
-            // FIX BUG JAMUR: Pastikan efek ungu juga hilang saat kembali ke menu utama
-            gameWrapper.classList.remove('shrink-active'); 
-            
+            initAudio(); playSfx('start'); gameOverScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
+            skillCdUi.classList.add('hidden'); changeMascot("🐦"); gameWrapper.classList.remove('shrink-active'); 
             resetPlayer(); initLevel(); ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT); draw(); 
         });
 
