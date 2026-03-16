@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hormuz Crossing - Epic Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow: hidden; 
+            touch-action: none;
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+        }
+
+        .font-heading { font-family: 'Outfit', sans-serif; }
+
+        #game-canvas {
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+            transition: filter 0.3s;
+        }
+
+        /* Filter saat jamur menyusut aktif */
+        .shrink-active { filter: hue-rotate(45deg) saturate(150%); }
+
+        .hide-scrollbar::-webkit-scrollbar { width: 4px; }
+        .hide-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .hide-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3); 
+            border-radius: 10px;
+        }
+
+        button, select {
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-float-in { animation: floatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px) rotate(-1deg); }
+            40% { transform: translateX(4px) rotate(1deg); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake-active { animation: shake 0.4s ease-in-out; }
+
+        /* Mascot Bounce */
+        @keyframes mascotBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .mascot-anim { animation: mascotBounce 1s infinite; }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen flex flex-col items-center justify-between py-2 sm:py-6 relative">
+
+    <div id="game-wrapper" class="relative w-full max-w-md aspect-square bg-slate-900 border border-slate-700/50 rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/20 flex flex-col shrink-0">
+        
+        <!-- Header Info -->
+        <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
+            <div class="flex flex-col gap-2">
+                <div class="flex gap-2 flex-wrap max-w-[200px]">
+                    <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1.5 text-slate-200">
+                        🏆 <span id="score" class="text-white font-bold">0</span>
+                    </div>
+                    <div class="bg-amber-500/10 backdrop-blur-md border border-amber-500/30 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1.5 text-amber-400">
+                        🪙 <span id="coin-ui" class="font-bold">0</span>
+                    </div>
+                    <!-- UI NYAWA (Lives) -->
+                    <div class="bg-rose-500/10 backdrop-blur-md border border-rose-500/30 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1.5 text-rose-400">
+                        ❤️ <span id="lives-ui" class="font-bold">3</span>
+                    </div>
+                </div>
+                <!-- Interactive Mascot (Companion) -->
+                <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700 w-12 h-12 rounded-2xl flex flex-col items-center justify-center shadow-md mascot-anim mt-1">
+                    <span id="mascot-emoji" class="text-2xl transition-all">🐦</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2 items-start">
+                <div class="bg-sky-500/10 backdrop-blur-md border border-sky-500/30 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1.5 text-sky-400">
+                    ⭐ LVL <span id="level" class="font-bold">1</span>
+                </div>
+                <button id="audio-toggle" class="pointer-events-auto bg-slate-800/80 backdrop-blur-md border border-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm hover:bg-slate-700 transition-colors">🔊</button>
+            </div>
+        </div>
+
+        <!-- Cooldown Indicator UI -->
+        <div id="skill-cd-ui" class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md border border-slate-600 px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-300 shadow-lg z-10 hidden">
+            SKILL: <span id="cd-text" class="text-sky-400 ml-1">READY</span>
+        </div>
+
+        <!-- Layar Mulai / Menu -->
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/60 z-20 backdrop-blur-md p-4">
+            <div class="animate-float-in bg-slate-800/90 border border-slate-700/50 shadow-2xl rounded-[2rem] p-6 w-full max-w-[320px] flex flex-col items-center">
+                <h1 class="font-heading text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 font-extrabold text-4xl mb-1 text-center leading-tight tracking-tight">Hormuz<br>Crossing</h1>
+                <p class="text-slate-400 mb-5 text-center text-[11px] font-medium">Lengkap dengan Hero Skill & Announcer!</p>
+                
+                <!-- Economy & Shop UI (Updated with Skills) -->
+                <div class="flex gap-2 mb-6 w-full justify-center">
+                    <button id="btn-shop-speedboat" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl p-2 flex flex-col items-center hover:bg-slate-700 transition-all relative">
+                        <span class="text-2xl mb-1 drop-shadow-md">🚤</span>
+                        <span class="text-[9px] text-sky-300 font-bold bg-sky-900/50 px-1.5 rounded-sm mb-0.5">DASH</span>
+                        <span class="text-[9px] text-slate-300 font-medium">Standar</span>
+                    </button>
+                    <button id="btn-shop-duck" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl p-2 flex flex-col items-center hover:bg-slate-700 transition-all relative">
+                        <span class="text-2xl mb-1 drop-shadow-md">🦆</span>
+                        <span class="text-[9px] text-emerald-300 font-bold bg-emerald-900/50 px-1.5 rounded-sm mb-0.5">DIVE</span>
+                        <span class="text-[9px] text-amber-400 font-medium leading-tight">50 🪙</span>
+                    </button>
+                    <button id="btn-shop-pirate" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl p-2 flex flex-col items-center hover:bg-slate-700 transition-all relative">
+                        <span class="text-2xl mb-1 drop-shadow-md">🏴‍☠️</span>
+                        <span class="text-[9px] text-red-300 font-bold bg-red-900/50 px-1.5 rounded-sm mb-0.5">CANNON</span>
+                        <span class="text-[9px] text-amber-400 font-medium leading-tight">100 🪙</span>
+                    </button>
+                </div>
+
+                <button id="start-btn" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white py-3.5 rounded-2xl font-bold tracking-wide shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                    Mulai Berlayar
+                </button>
+                
+                <a href="https://saweria.co/butoable" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center justify-center gap-1.5 text-amber-400 hover:text-amber-300 text-[11px] font-medium transition-colors">
+                    Beli Kopi untuk Developer
+                </a>
+            </div>
+        </div>
+
+        <!-- Layar Game Over -->
+        <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/70 z-20 hidden backdrop-blur-md p-4">
+            <div class="animate-float-in bg-slate-800/95 border border-slate-700/80 shadow-2xl rounded-[2rem] p-8 w-full max-w-[280px] flex flex-col items-center text-center">
+                <div class="text-5xl mb-3">💥</div>
+                <h2 class="font-heading text-white text-3xl font-extrabold mb-1">KANDAS</h2>
+                <p class="text-slate-400 mb-6 text-sm">Skor Akhir: <span id="final-score" class="text-white font-bold text-lg ml-1">0</span></p>
+                
+                <div class="flex flex-col gap-3 w-full mb-5">
+                    <button id="restart-btn" class="w-full bg-white text-slate-900 py-3 rounded-2xl font-bold shadow-md hover:bg-slate-100 active:scale-[0.98] transition-all">
+                        Coba Lagi
+                    </button>
+                    <button id="menu-btn" class="w-full bg-slate-700 text-white py-3 rounded-2xl font-semibold shadow-md hover:bg-slate-600 active:scale-[0.98] transition-all">
+                        Menu Utama
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Game -->
+        <canvas id="game-canvas" class="w-full h-full flex-grow rounded-b-3xl"></canvas>
+    </div>
+
+    <!-- Kontrol Sentuh Mobile (D-Pad + Skill Button) -->
+    <div class="mt-auto mb-4 flex gap-4 items-end sm:hidden z-30 w-full max-w-[320px] px-2">
+        <!-- D-Pad -->
+        <div class="grid grid-cols-3 gap-2 w-[200px]">
+            <div class="col-start-2">
+                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-up">▲</button>
+            </div>
+            <div class="col-start-1 row-start-2">
+                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-left">◀</button>
+            </div>
+            <div class="col-start-2 row-start-2">
+                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-down">▼</button>
+            </div>
+            <div class="col-start-3 row-start-2">
+                <button class="w-full h-12 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-xl flex items-center justify-center text-slate-300 text-xl shadow-lg active:bg-slate-700/80 active:scale-95 transition-all" id="btn-right">▶</button>
+            </div>
+        </div>
+        <!-- Skill Button -->
+        <button id="btn-skill" class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 border-2 border-amber-200 rounded-full flex flex-col items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.5)] active:scale-90 transition-all ml-auto">
+            <span class="text-2xl drop-shadow-md">⚡</span>
+            <span class="text-[8px] font-bold text-white leading-none">SKILL</span>
+        </button>
+    </div>
+
+    <div class="mt-2 text-xs text-slate-500 font-medium hidden sm:block text-center">
+        Gerak: <b>PANAH / WASD</b> &nbsp;|&nbsp; Skill Hero: <b>SPASI</b>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const gameWrapper = document.getElementById('game-wrapper');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const finalScoreEl = document.getElementById('final-score');
+        
+        const mascotEmoji = document.getElementById('mascot-emoji');
+        const cdText = document.getElementById('cd-text');
+        const skillCdUi = document.getElementById('skill-cd-ui');
+        const livesUi = document.getElementById('lives-ui');
+
+        let animationId;
+        let isPlaying = false;
+        let lives = 3;
+        
+        // --- AUDIO & ANNOUNCER SYSTEM (Web Speech API + Web Audio) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let isMuted = false;
+        const synth = window.speechSynthesis;
+
+        document.getElementById('audio-toggle').addEventListener('click', (e) => {
+            isMuted = !isMuted;
+            e.target.innerText = isMuted ? '🔇' : '🔊';
+            if(isMuted) synth.cancel();
+        });
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // Announcer System
+        function announce(text, priority = false) {
+            if (isMuted || !synth) return;
+            if (priority) synth.cancel(); // Potong antrian jika penting (mati/level up)
+            
+            const utterThis = new SpeechSynthesisUtterance(text);
+            utterThis.pitch = 1.3; // Suara agak tinggi biar excited
+            utterThis.rate = 1.3;  // Tempo cepat ala arcade
+            utterThis.lang = 'en-US'; // Pakai bahasa inggris agar pelafalan "Awesome" keren
+            synth.speak(utterThis);
+        }
+
+        function playSfx(name) {
+            if(isMuted || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            gain.connect(audioCtx.destination);
+            osc.connect(gain);
+            const now = audioCtx.currentTime;
+            
+            if (name === 'coin') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(1600, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (name === 'powerup') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (name === 'nearmiss') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (name === 'crash') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            } else if (name === 'start') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.4);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (name === 'shoot') { // Meriam Bajak Laut
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+
+        // --- SISTEM EKONOMI & SKIN ---
+        let myCoins = parseInt(localStorage.getItem('hormuz_coins')) || 0;
+        let mySkins = JSON.parse(localStorage.getItem('hormuz_skins')) || ['speedboat'];
+        let activeSkin = localStorage.getItem('hormuz_active_skin') || 'speedboat';
+
+        const skinsData = {
+            'speedboat': { icon: '🚤', price: 0, width: 50, skillType: 'dash', cooldown: 300 }, // 300 frames = 5 detik
+            'duck': { icon: '🦆', price: 50, width: 35, skillType: 'dive', cooldown: 600 }, // 10 detik
+            'pirate': { icon: '🏴‍☠️', price: 100, width: 55, skillType: 'cannon', cooldown: 480 } // 8 detik
+        };
+
+        function updateShopUI() {
+            document.getElementById('coin-ui').innerText = myCoins;
+            ['speedboat', 'duck', 'pirate'].forEach(id => {
+                const btn = document.getElementById(`btn-shop-${id}`);
+                const statusSpan = btn.children[2];
+                if (activeSkin === id) {
+                    btn.classList.add('bg-sky-500/20', 'border-sky-400');
+                    btn.classList.remove('bg-slate-700/50', 'border-slate-600');
+                    statusSpan.innerHTML = "DIPAKAI";
+                    statusSpan.className = "text-[10px] text-sky-400 font-bold mt-1";
+                } else if (mySkins.includes(id)) {
+                    btn.classList.remove('bg-sky-500/20', 'border-sky-400');
+                    btn.classList.add('bg-slate-700/50', 'border-slate-500');
+                    statusSpan.innerHTML = "GUNAKAN";
+                    statusSpan.className = "text-[10px] text-slate-300 font-bold mt-1";
+                } else {
+                    statusSpan.innerHTML = `${skinsData[id].price} 🪙`;
+                }
+            });
+        }
+
+        ['speedboat', 'duck', 'pirate'].forEach(id => {
+            document.getElementById(`btn-shop-${id}`).addEventListener('click', () => {
+                initAudio();
+                if (mySkins.includes(id)) {
+                    activeSkin = id;
+                    localStorage.setItem('hormuz_active_skin', activeSkin);
+                    playSfx('start');
+                    announce("Selected!");
+                } else if (myCoins >= skinsData[id].price) {
+                    myCoins -= skinsData[id].price;
+                    mySkins.push(id);
+                    activeSkin = id;
+                    localStorage.setItem('hormuz_coins', myCoins);
+                    localStorage.setItem('hormuz_skins', JSON.stringify(mySkins));
+                    localStorage.setItem('hormuz_active_skin', activeSkin);
+                    playSfx('powerup');
+                    announce("Unlocked!");
+                } else {
+                    playSfx('crash'); 
+                }
+                updateShopUI();
+            });
+        });
+        updateShopUI();
+
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 800;
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        // Variabel Game
+        let score = 0;
+        let level = 1;
+        const rows = 11; 
+        const rowHeight = GAME_HEIGHT / rows;
+        
+        let combo = 0;
+        let comboTimer = 0;
+        let floatingTexts = [];
+        let mascotStateTimer = 0;
+
+        // Entitas Pemain
+        let player = {
+            x: GAME_WIDTH / 2 - 20,
+            y: GAME_HEIGHT - rowHeight + 10,
+            width: 50, height: 50, speed: 5,
+            hasShield: false,
+            skillCooldown: 0,
+            skillActiveTimer: 0,
+            isDiving: false, // Untuk skill bebek
+            invulnerableTimer: 0 // Waktu kebal (kedap-kedip)
+        };
+
+        let obstacles = [];
+        let items = [];
+        let waterParticles = [];
+        let projectiles = []; // Untuk skill meriam bajak laut
+        let shrinkTimer = 0; // Untuk powerup konyol jamur
+
+        function changeMascot(emoji, durationStr = 60) {
+            mascotEmoji.innerText = emoji;
+            mascotStateTimer = durationStr;
+        }
+
+        function initLevel() {
+            obstacles = [];
+            items = [];
+            projectiles = [];
+            floatingTexts = [];
+            waterParticles = [];
+            shrinkTimer = 0;
+            
+            // FIX BUG JAMUR: Paksa hapus efek filter ungu setiap kali level di-reset / naik level
+            gameWrapper.classList.remove('shrink-active'); 
+            
+            // TINGKAT KESULITAN BERTAHAP (Progressive Difficulty)
+            // Kecepatan dasar dimulai dari sangat pelan (1.2) dan naik pelan-pelan
+            const baseSpeed = 1.2 + (level * 0.3); 
+            
+            for (let i = 1; i < rows - 1; i++) {
+                const direction = i % 2 === 0 ? 1 : -1;
+                const isTanker = i % 3 === 0;
+                const width = isTanker ? 100 : 60; 
+                
+                // Jarak (Gap) antar kapal lebih renggang di level awal, dan makin rapat di level tinggi
+                const gap = isTanker ? Math.max(260, 450 - (level * 20)) : Math.max(180, 300 - (level * 15)); 
+                
+                // Jumlah kapal bertambah seiring level
+                let numObstacles;
+                if (isTanker) {
+                    numObstacles = level <= 2 ? 1 : 2; // Lvl 1-2: Cuma 1 Tanker. Lvl 3+: 2 Tanker.
+                } else {
+                    numObstacles = level === 1 ? 2 : 3; // Lvl 1: 2 Patroli. Lvl 2+: 3 Patroli.
+                }
+                
+                // Variasi kecepatan acak (agar pola tidak terlalu kaku) juga bertahap
+                const speedVar = Math.min(2, level * 0.2);
+                const speed = (baseSpeed + Math.random() * speedVar) * direction;
+                
+                for (let j = 0; j < numObstacles; j++) {
+                    obstacles.push({
+                        x: j * gap, y: i * rowHeight + 10,
+                        baseWidth: width, width: width, height: rowHeight - 20,
+                        speed: speed, isTanker: isTanker, passed: false,
+                        dead: false
+                    });
+                }
+
+                // Peluang Spawn Item (Koin, Shield, Jamur Shrink, Nyawa/Heart)
+                const itemSpawnRate = level <= 2 ? 0.6 : 0.45; 
+                if (Math.random() < itemSpawnRate) {
+                    const r = Math.random();
+                    let type = 'coin', icon = '🪙';
+                    if (r < 0.15) { type = 'shield'; icon = '🛡️'; }
+                    else if (r < 0.25) { type = 'shrink'; icon = '🍄'; } 
+                    else if (r < 0.30) { type = 'heart'; icon = '❤️'; } // 5% peluang drop Nyawa
+
+                    items.push({
+                        x: Math.random() * GAME_WIDTH, y: i * rowHeight + 20,
+                        speed: speed * 0.6, type: type, icon: icon, width: 35
+                    });
+                }
+            }
+        }
+
+        function resetPlayer() {
+            const skin = skinsData[activeSkin];
+            player.width = skin.width;
+            player.x = GAME_WIDTH / 2 - player.width / 2;
+            player.y = GAME_HEIGHT - rowHeight + 10;
+            player.hasShield = false;
+            player.skillCooldown = 0;
+            player.skillActiveTimer = 0;
+            player.isDiving = false;
+            player.invulnerableTimer = 120; // 2 Detik kebal setiap kali reset posisi
+            updateSkillUI();
+        }
+
+        function updateSkillUI() {
+            if (player.skillCooldown > 0) {
+                cdText.innerText = Math.ceil(player.skillCooldown / 60) + "s";
+                cdText.className = "text-red-400 ml-1";
+            } else {
+                cdText.innerText = "READY (SPASI)";
+                cdText.className = "text-emerald-400 ml-1";
+            }
+        }
+
+        function activateSkill() {
+            if (player.skillCooldown > 0 || !isPlaying) return;
+            
+            const skin = skinsData[activeSkin];
+            player.skillCooldown = skin.cooldown;
+            
+            if (skin.skillType === 'dash') {
+                player.skillActiveTimer = 60; // Dash 1 detik
+                playSfx('powerup');
+                addFloatingText("TURBO DASH!", player.x, player.y, "#38bdf8");
+                changeMascot("🚀", 60);
+            } 
+            else if (skin.skillType === 'dive') {
+                player.isDiving = true;
+                player.skillActiveTimer = 120; // Menyelam 2 detik
+                playSfx('powerup');
+                addFloatingText("DIVE!", player.x, player.y, "#10b981");
+                changeMascot("🤿", 120);
+            }
+            else if (skin.skillType === 'cannon') {
+                playSfx('shoot');
+                projectiles.push({ x: player.x + player.width/2, y: player.y, speed: 12, radius: 10 });
+                addFloatingText("FIRE!", player.x, player.y, "#ef4444");
+                changeMascot("💣", 40);
+            }
+            updateSkillUI();
+        }
+
+        function startGame() {
+            initAudio();
+            playSfx('start');
+            announce("Start Game!", true);
+            score = 0; level = 1; combo = 0; lives = 3;
+            scoreEl.innerText = score; levelEl.innerText = level; livesUi.innerText = lives;
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            skillCdUi.classList.remove('hidden');
+            gameWrapper.classList.remove('shake-active'); 
+            gameWrapper.classList.remove('shrink-active');
+            changeMascot("🐦");
+            resetPlayer();
+            initLevel();
+            isPlaying = true;
+            gameLoop();
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            playSfx('crash');
+            announce("Game Over!", true);
+            changeMascot("😵", 9999);
+            skillCdUi.classList.add('hidden');
+            finalScoreEl.innerText = score;
+            gameOverScreen.classList.remove('hidden');
+            gameWrapper.classList.add('shake-active');
+            setTimeout(() => { gameWrapper.classList.remove('shake-active'); }, 400);
+        }
+
+        // Fungsi kehilangan nyawa (tapi belum Game Over)
+        function loseLife() {
+            lives--;
+            livesUi.innerText = lives;
+            playSfx('crash');
+            announce("Ouch!", true);
+            changeMascot("🤕", 60);
+            gameWrapper.classList.add('shake-active');
+            setTimeout(() => gameWrapper.classList.remove('shake-active'), 400);
+            
+            combo = 0; // Reset kombo
+            resetPlayer(); // Kembalikan ke posisi awal dan beri I-Frame
+            addFloatingText("-1 ❤️", player.x, player.y, "#ef4444");
+        }
+
+        function levelUp() {
+            playSfx('start');
+            announce("Level Up!", true);
+            changeMascot("😎", 90);
+            score += 100; level++;
+            scoreEl.innerText = score; levelEl.innerText = level;
+            resetPlayer();
+            initLevel();
+            addFloatingText("LEVEL UP!", player.x, GAME_HEIGHT/2, "#38bdf8");
+        }
+        
+        function addFloatingText(text, x, y, color) {
+            floatingTexts.push({ text, x, y, color, life: 60 });
+        }
+
+        // Input Setup
+        const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false };
+        
+        window.addEventListener('keydown', (e) => {
+            if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
+            if(e.code === 'Space' && isPlaying) { e.preventDefault(); activateSkill(); }
+        });
+        window.addEventListener('keyup', (e) => {
+            if(keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        // Kontrol Mobile
+        const handleTouchStart = (dir) => { keys[dir] = true; };
+        const handleTouchEnd = (dir) => { keys[dir] = false; };
+        document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowUp'); });
+        document.getElementById('btn-up').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowUp'); });
+        document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowDown'); });
+        document.getElementById('btn-down').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowDown'); });
+        document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowLeft'); });
+        document.getElementById('btn-left').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowLeft'); });
+        document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowRight'); });
+        document.getElementById('btn-right').addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowRight'); });
+        document.getElementById('btn-skill').addEventListener('touchstart', (e) => { e.preventDefault(); activateSkill(); });
+
+        function update() {
+            if (!isPlaying) return;
+
+            // Mascot Logic
+            if (mascotStateTimer > 0) {
+                mascotStateTimer--;
+                if (mascotStateTimer === 0 && isPlaying) changeMascot("🐦");
+            }
+
+            // Skill Cooldown Logic
+            if (player.skillCooldown > 0) {
+                player.skillCooldown--;
+                if(player.skillCooldown % 60 === 0) updateSkillUI(); // Update UI text every second
+            }
+            if (player.skillActiveTimer > 0) {
+                player.skillActiveTimer--;
+                if (player.skillActiveTimer === 0 && player.isDiving) player.isDiving = false;
+            }
+            if (player.invulnerableTimer > 0) {
+                player.invulnerableTimer--;
+            }
+
+            // Shrink PowerUp Logic
+            if (shrinkTimer > 0) {
+                shrinkTimer--;
+                if (shrinkTimer === 0) {
+                    gameWrapper.classList.remove('shrink-active');
+                    obstacles.forEach(obs => obs.width = obs.baseWidth);
+                }
+            }
+
+            if (comboTimer > 0) {
+                comboTimer--;
+                if (comboTimer === 0) combo = 0;
+            }
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                floatingTexts[i].y -= 1.5; floatingTexts[i].life--;
+                if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+            }
+
+            for (let i = waterParticles.length - 1; i >= 0; i--) {
+                waterParticles[i].y += 2; waterParticles[i].life -= 0.05;
+                if(waterParticles[i].life <= 0) waterParticles.splice(i, 1);
+            }
+
+            // Projectiles Logic (Pirate Skill)
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                projectiles[i].y -= projectiles[i].speed;
+                // Cek tabrakan meriam ke kapal
+                let hit = false;
+                for (let j = 0; j < obstacles.length; j++) {
+                    let obs = obstacles[j];
+                    if (!obs.dead && projectiles[i].x > obs.x && projectiles[i].x < obs.x + obs.width &&
+                        projectiles[i].y > obs.y && projectiles[i].y < obs.y + obs.height) {
+                        obs.dead = true;
+                        obs.y = -1000; // Hilangkan
+                        hit = true;
+                        playSfx('crash');
+                        addFloatingText("BOOM!", obs.x, obs.y, "#fbbf24");
+                        break;
+                    }
+                }
+                if (hit || projectiles[i].y < 0) projectiles.splice(i, 1);
+            }
+
+            let currentSpeed = player.speed;
+            if (player.skillActiveTimer > 0 && skinsData[activeSkin].skillType === 'dash') currentSpeed *= 2;
+
+            if (keys.ArrowUp || keys.w) player.y -= currentSpeed;
+            if (keys.ArrowDown || keys.s) player.y += currentSpeed;
+            if (keys.ArrowLeft || keys.a) player.x -= currentSpeed;
+            if (keys.ArrowRight || keys.d) player.x += currentSpeed;
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > GAME_WIDTH) player.x = GAME_WIDTH - player.width;
+            if (player.y > GAME_HEIGHT - player.height) player.y = GAME_HEIGHT - player.height;
+
+            if (player.y < rowHeight) levelUp();
+
+            // Item Logic
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                item.x += item.speed;
+                if (item.speed > 0 && item.x > GAME_WIDTH) item.x = -item.width;
+                else if (item.speed < 0 && item.x + item.width < 0) item.x = GAME_WIDTH;
+
+                if (!player.isDiving && player.x < item.x + item.width && player.x + player.width > item.x &&
+                    player.y < item.y + item.width && player.y + player.height > item.y) {
+                    
+                    if (item.type === 'coin') {
+                        myCoins++;
+                        localStorage.setItem('hormuz_coins', myCoins);
+                        updateShopUI();
+                        playSfx('coin');
+                        addFloatingText("+1 🪙", player.x, player.y, "#fbbf24");
+                    } else if (item.type === 'shield') {
+                        player.hasShield = true;
+                        playSfx('powerup');
+                        addFloatingText("SHIELD! 🛡️", player.x, player.y, "#38bdf8");
+                        changeMascot("🛡️", 60);
+                    } else if (item.type === 'shrink') {
+                        shrinkTimer = 300; // 5 Detik
+                        gameWrapper.classList.add('shrink-active');
+                        playSfx('powerup');
+                        announce("Shrink!");
+                        addFloatingText("MINI MODE! 🍄", player.x, player.y, "#c084fc");
+                        changeMascot("🍄", 60);
+                        obstacles.forEach(obs => obs.width = obs.baseWidth / 2); // Susutkan lebar
+                    } else if (item.type === 'heart') {
+                        lives = Math.min(lives + 1, 5); // Nyawa maksimal 5
+                        livesUi.innerText = lives;
+                        playSfx('powerup');
+                        announce("Extra Life!");
+                        addFloatingText("+1 ❤️", player.x, player.y, "#f43f5e");
+                        changeMascot("😍", 60);
+                    }
+                    items.splice(i, 1);
+                }
+            }
+
+            // Obstacle Logic
+            obstacles.forEach(obs => {
+                if(obs.dead) return;
+                obs.x += obs.speed;
+                if (obs.speed > 0 && obs.x > GAME_WIDTH) { obs.x = -obs.width; obs.passed = false; } 
+                else if (obs.speed < 0 && obs.x + obs.width < 0) { obs.x = GAME_WIDTH; obs.passed = false; }
+
+                if (player.isDiving) return; // Kebal kalau menyelam (Duck Skill)
+
+                const tolerance = activeSkin === 'duck' ? 15 : 8;
+                const isCollide = (
+                    player.x + tolerance < obs.x + obs.width &&
+                    player.x + player.width - tolerance > obs.x &&
+                    player.y + tolerance < obs.y + obs.height &&
+                    player.y + player.height - tolerance > obs.y
+                );
+
+                if (isCollide && player.invulnerableTimer <= 0) {
+                    if (player.hasShield) {
+                        player.hasShield = false;
+                        obs.dead = true; obs.y = -1000; 
+                        playSfx('powerup'); announce("Watch out!");
+                        addFloatingText("SHIELD PECAH!", player.x, player.y, "#ef4444");
+                        gameWrapper.classList.add('shake-active');
+                        setTimeout(() => gameWrapper.classList.remove('shake-active'), 200);
+                        changeMascot("😨", 60);
+                        player.invulnerableTimer = 60; // Diberi 1 detik kebal setelah shield pecah
+                    } else {
+                        // Cek Sisa Nyawa
+                        if (lives > 1) {
+                            loseLife();
+                        } else {
+                            lives = 0;
+                            livesUi.innerText = lives;
+                            gameOver();
+                        }
+                    }
+                } 
+                else if (!obs.passed && player.y + player.height > obs.y && player.y < obs.y + obs.height) {
+                    const dist = Math.abs((player.x + player.width/2) - (obs.x + obs.width/2));
+                    if (dist < (player.width + obs.width)/2 + 25) {
+                        obs.passed = true;
+                        combo++; comboTimer = 180; 
+                        
+                        const mult = activeSkin === 'pirate' ? 1.2 : 1;
+                        const pts = Math.floor(50 * combo * mult);
+                        
+                        score += pts; scoreEl.innerText = score;
+                        playSfx('nearmiss');
+                        addFloatingText(`NYARIS! +${pts} 🔥`, player.x, player.y - 20, "#fbbf24");
+                        changeMascot("🦅", 40); // Mascot melotot/excited
+                        
+                        // Announcer bereaksi terhadap kombo
+                        if (combo === 3) announce("Awesome!");
+                        else if (combo === 5) announce("Unstoppable!");
+                    }
+                }
+            });
+
+            if(isPlaying && (keys.ArrowUp || keys.w || keys.ArrowDown || keys.s || keys.ArrowLeft || keys.a || keys.ArrowRight || keys.d)) {
+                if(Math.random() > 0.5) {
+                    waterParticles.push({
+                        x: player.x + player.width/2 + (Math.random()*10-5),
+                        y: player.y + player.height,
+                        radius: Math.random() * 4 + 2,
+                        life: 1.0
+                    });
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; 
+            ctx.fillRect(0, 0, GAME_WIDTH, rowHeight); 
+            ctx.fillRect(0, GAME_HEIGHT - rowHeight, GAME_WIDTH, rowHeight); 
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 2; ctx.beginPath();
+            ctx.moveTo(0, rowHeight); ctx.lineTo(GAME_WIDTH, rowHeight);
+            ctx.moveTo(0, GAME_HEIGHT - rowHeight); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - rowHeight);
+            ctx.stroke();
+
+            ctx.font = "24px 'Inter', sans-serif";
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            for(let w = 80; w < GAME_WIDTH; w += 160) {
+                ctx.fillText("FINISH", w, rowHeight / 2); 
+                ctx.fillText("START", w, GAME_HEIGHT - rowHeight / 2); 
+            }
+
+            items.forEach(item => {
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+                ctx.font = "28px Arial"; ctx.fillText(item.icon, item.x + item.width/2, item.y + item.width/2);
+            });
+
+            obstacles.forEach(obs => {
+                if(obs.dead) return;
+                ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 6;
+                // Ukuran font menyesuaikan jika menyusut (shrink powerup)
+                const isMini = shrinkTimer > 0;
+                ctx.font = `${obs.isTanker ? (isMini?40:70) : (isMini?30:50)}px Arial`;
+                ctx.save();
+                ctx.translate(obs.x + obs.width / 2, obs.y + obs.height / 2);
+                if (obs.speed > 0) ctx.scale(-1, 1);
+                ctx.fillText(obs.isTanker ? "🚢" : "🛥️", 0, 0);
+                ctx.restore();
+            });
+
+            // Draw Projectiles
+            projectiles.forEach(p => {
+                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 5;
+                ctx.fillStyle = "#333";
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#ff4500"; // Api kecil di belakang meriam
+                ctx.beginPath(); ctx.arc(p.x, p.y + p.radius, p.radius/2, 0, Math.PI*2); ctx.fill();
+            });
+
+            ctx.shadowColor = "transparent";
+            waterParticles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.life * 0.5})`; ctx.fill();
+            });
+
+            // Player Render
+            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
+            ctx.font = "45px Arial";
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+            ctx.rotate(Math.PI / 2);
+            
+            if (player.isDiving) {
+                ctx.globalAlpha = 0.4; // Transparan jika menyelam
+            } else if (player.invulnerableTimer > 0) {
+                // Efek kedap-kedip saat kebal (invulnerable)
+                if (Math.floor(Date.now() / 150) % 2 === 0) ctx.globalAlpha = 0.5;
+            }
+            
+            ctx.fillText(skinsData[activeSkin].icon, 0, 0);
+
+            if (player.hasShield && !player.isDiving) {
+                ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
+                const grad = ctx.createLinearGradient(-30, -30, 30, 30);
+                grad.addColorStop(0, "rgba(255, 255, 255, 0.4)"); grad.addColorStop(1, "rgba(56, 189, 248, 0.1)");
+                ctx.fillStyle = grad; ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.shadowColor = "transparent"; ctx.globalAlpha = 1.0;
+            
+            floatingTexts.forEach(ft => {
+                ctx.globalAlpha = ft.life / 60; 
+                ctx.fillStyle = ft.color;
+                ctx.font = "bold 20px 'Inter', sans-serif";
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+                ctx.fillText(ft.text, ft.x + player.width/2, ft.y);
+                ctx.globalAlpha = 1.0; ctx.shadowColor = "transparent"; 
+            });
+        }
+
+        function gameLoop() {
+            update(); draw();
+            if (isPlaying) animationId = requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+        
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            initAudio(); playSfx('start');
+            gameOverScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
+            skillCdUi.classList.add('hidden'); changeMascot("🐦");
+            
+            // FIX BUG JAMUR: Pastikan efek ungu juga hilang saat kembali ke menu utama
+            gameWrapper.classList.remove('shrink-active'); 
+            
+            resetPlayer(); initLevel(); ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT); draw(); 
+        });
+
+        draw();
+
+    </script>
+</body>
+</html>
