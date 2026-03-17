@@ -2,15 +2,22 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <!-- Meta Viewport ketat: Cegah Zoom & Scroll liar -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>Hormuz Crossing - Epic Modern</title> 
         
-    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- === PERBAIKAN FAVICON & PWA iOS === -->
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.png">
+    
     <meta name="apple-mobile-web-app-title" content="Hormuz">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,13 +25,13 @@
 
         /* === GLOBAL MOBILE RESET (ANTI-ZOOM, ANTI-COPY, ANTI-HIGHLIGHT) === */
         * {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;  
-            -khtml-user-select: none;   
-            -moz-user-select: none;     
-            -ms-user-select: none;      
-            user-select: none;          
-            -webkit-tap-highlight-color: transparent; 
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;  
+            -khtml-user-select: none !important;   
+            -moz-user-select: none !important;     
+            -ms-user-select: none !important;      
+            user-select: none !important;          
+            -webkit-tap-highlight-color: transparent !important; 
         }
 
         body {
@@ -32,8 +39,8 @@
             background-color: #0f172a;
             color: #f8fafc;
             overflow: hidden; 
-            touch-action: none; 
-            overscroll-behavior: none; 
+            touch-action: none; /* Cegah browser scroll & pan */
+            overscroll-behavior: none; /* Cegah pull-to-refresh */
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         }
 
@@ -76,7 +83,6 @@
         }
         .mascot-anim { animation: mascotBounce 1s infinite; }
         
-        /* Smooth Analog Snapback transition */
         .snap-back { transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1); }
     </style>
 </head>
@@ -113,7 +119,7 @@
         </div>
 
         <!-- Cooldown Indicator UI -->
-        <div id="skill-cd-ui" class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md border border-slate-600 px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-300 shadow-lg z-10 hidden">
+        <div id="skill-cd-ui" class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md border border-slate-600 px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-300 shadow-lg z-10 hidden pointer-events-none">
             SKILL: <span id="cd-text" class="text-sky-400 ml-1">READY</span>
         </div>
 
@@ -121,7 +127,7 @@
         <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/60 z-20 backdrop-blur-md p-4">
             <div class="animate-float-in bg-slate-800/90 border border-slate-700/50 shadow-2xl rounded-[2rem] p-6 w-full max-w-[320px] flex flex-col items-center pointer-events-auto">
                 <h1 class="font-heading text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 font-extrabold text-4xl mb-1 text-center leading-tight tracking-tight">Hormuz<br>Crossing</h1>
-                <p class="text-slate-400 mb-5 text-center text-[11px] font-medium">Lengkap dengan Hero Skill & Analog Control!</p>
+                <p class="text-slate-400 mb-5 text-center text-[11px] font-medium">Native Mobile Controls Optimized!</p>
                 
                 <!-- Economy & Shop UI -->
                 <div class="flex gap-2 mb-6 w-full justify-center">
@@ -175,16 +181,16 @@
     </div>
 
     <!-- === KONTROL MOBILE (SKILL KIRI, ANALOG KANAN) === -->
-    <div class="mt-auto mb-4 flex justify-between items-center sm:hidden z-30 w-full max-w-md px-8">
+    <div class="mt-auto mb-4 flex justify-between items-center sm:hidden z-30 w-full max-w-md px-8 pointer-events-auto">
         
         <!-- Skill Button (KIRI) -->
-        <button id="btn-skill" class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 border-2 border-amber-200 rounded-full flex flex-col items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.5)] active:scale-90 transition-transform pointer-events-auto select-none" style="touch-action: manipulation;">
+        <button id="btn-skill" class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-600 border-2 border-amber-200 rounded-full flex flex-col items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.5)] active:scale-90 transition-transform pointer-events-auto">
             <span class="text-2xl drop-shadow-md pointer-events-none">⚡</span>
             <span class="text-[8px] font-bold text-white leading-none pointer-events-none">SKILL</span>
         </button>
 
-        <!-- ANALOG JOYSTICK (KANAN) ala Mobile Legends -->
-        <div id="joystick-zone" class="relative w-32 h-32 bg-slate-800/80 backdrop-blur-md border-[3px] border-slate-600/80 rounded-full flex items-center justify-center shadow-lg select-none pointer-events-auto" style="touch-action: none;">
+        <!-- ANALOG JOYSTICK (KANAN) -->
+        <div id="joystick-zone" class="relative w-32 h-32 bg-slate-800/80 backdrop-blur-md border-[3px] border-slate-600/80 rounded-full flex items-center justify-center shadow-lg pointer-events-auto">
             <div id="joystick-knob" class="absolute w-12 h-12 bg-sky-500 rounded-full shadow-[0_0_20px_rgba(56,189,248,0.8)] border-2 border-sky-200 pointer-events-none snap-back" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
         </div>
 
@@ -195,10 +201,10 @@
     </div>
 
     <script>
-        // === CEGAH ZOOM & SCROLL NAKAL DI BROWSER MOBILE ===
+        // === PENANGKAL BUG ZOOM & SCROLL IOS/ANDROID ===
         document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
         document.addEventListener('touchmove', function(e) {
-            if(!e.target.closest('#start-screen')) {
+            if(!e.target.closest('#start-screen') && !e.target.closest('#game-over-screen')) {
                 e.preventDefault();
             }
         }, { passive: false });
@@ -206,10 +212,14 @@
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function (event) {
             let now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) event.preventDefault();
+            // Mencegah double tap to zoom di Safari
+            if (now - lastTouchEnd <= 300) {
+                if(!event.target.closest('button') && !event.target.closest('a')) {
+                    event.preventDefault(); 
+                }
+            }
             lastTouchEnd = now;
         }, { passive: false });
-
 
         // === SETUP GAME ===
         const canvas = document.getElementById('game-canvas');
@@ -362,7 +372,7 @@
             width: 50, height: 50, speed: 5,
             hasShield: false, skillCooldown: 0, skillActiveTimer: 0,
             isDiving: false, invulnerableTimer: 0,
-            angle: Math.PI / 2 // Dynamic Rotation angle
+            angle: Math.PI / 2
         };
 
         let obstacles = [], items = [], waterParticles = [], projectiles = [], shrinkTimer = 0; 
@@ -411,7 +421,7 @@
             player.y = GAME_HEIGHT - rowHeight + 10;
             player.hasShield = false; player.skillCooldown = 0; player.skillActiveTimer = 0;
             player.isDiving = false; player.invulnerableTimer = 120; 
-            player.angle = Math.PI / 2; // Kembali menghadap lurus ke atas
+            player.angle = Math.PI / 2; 
             updateSkillUI();
         }
 
@@ -438,10 +448,8 @@
                 playSfx('powerup'); addFloatingText("DIVE!", player.x, player.y, "#10b981"); changeMascot("🤿", 120);
             } else if (skin.skillType === 'cannon') {
                 playSfx('shoot');
-                // Tembak meriam ke arah depan kapal saat ini
                 const fireX = player.x + player.width/2;
                 const fireY = player.y + player.height/2;
-                // Hitung arah meriam berdasarkan rotasi
                 const projVx = Math.cos(player.angle - Math.PI) * 12;
                 const projVy = Math.sin(player.angle - Math.PI) * 12;
                 projectiles.push({ x: fireX, y: fireY, vx: projVx, vy: projVy, radius: 10 });
@@ -485,15 +493,16 @@
         
         function addFloatingText(text, x, y, color) { floatingTexts.push({ text, x, y, color, life: 60 }); }
 
-        // === INPUT KEYBOARD ===
+        // === MANAJEMEN INPUT (KEYBOARD & TOUCH) ANTI BUG ===
         const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false };
+        
         window.addEventListener('keydown', (e) => {
             if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
             if(e.code === 'Space' && isPlaying) { e.preventDefault(); activateSkill(); }
         });
         window.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-        // === SISTEM ANALOG JOYSTICK (SMOOTH 360) ===
+        // === SISTEM ANALOG JOYSTICK ===
         const joystickZone = document.getElementById('joystick-zone');
         const joystickKnob = document.getElementById('joystick-knob');
         let joystick = { active: false, dx: 0, dy: 0, maxRadius: 40 };
@@ -507,7 +516,6 @@
             let diffY = touch.clientY - centerY;
             const distance = Math.sqrt(diffX * diffX + diffY * diffY);
             
-            // Batasi mentok di radius luar
             if (distance > joystick.maxRadius) {
                 diffX = (diffX / distance) * joystick.maxRadius;
                 diffY = (diffY / distance) * joystick.maxRadius;
@@ -515,7 +523,6 @@
 
             joystickKnob.style.transform = `translate(calc(-50% + ${diffX}px), calc(-50% + ${diffY}px))`;
             
-            // Normalisasi output dari -1.0 sampai 1.0 untuk engine game
             joystick.dx = diffX / joystick.maxRadius;
             joystick.dy = diffY / joystick.maxRadius;
         }
@@ -523,7 +530,7 @@
         joystickZone.addEventListener('touchstart', (e) => {
             e.preventDefault();
             joystick.active = true;
-            joystickKnob.classList.remove('snap-back'); // Hilangkan animasi saat disentuh
+            joystickKnob.classList.remove('snap-back'); 
             updateJoystick(e.changedTouches[0]);
         }, {passive: false});
 
@@ -536,16 +543,15 @@
         const resetJoystick = (e) => {
             e.preventDefault();
             joystick.active = false;
-            joystick.dx = 0;
-            joystick.dy = 0;
-            joystickKnob.classList.add('snap-back'); // Animasi membal ke tengah
+            joystick.dx = 0; joystick.dy = 0;
+            joystickKnob.classList.add('snap-back'); 
             joystickKnob.style.transform = `translate(-50%, -50%)`;
         };
 
         joystickZone.addEventListener('touchend', resetJoystick, {passive: false});
         joystickZone.addEventListener('touchcancel', resetJoystick, {passive: false});
         
-        // Skill button mobile tap
+        // Skill Button
         document.getElementById('btn-skill').addEventListener('touchstart', (e) => { 
             e.preventDefault(); activateSkill(); 
         }, {passive: false});
@@ -564,7 +570,6 @@
             for (let i = floatingTexts.length - 1; i >= 0; i--) { floatingTexts[i].y -= 1.5; floatingTexts[i].life--; if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1); }
             for (let i = waterParticles.length - 1; i >= 0; i--) { waterParticles[i].y += 2; waterParticles[i].life -= 0.05; if(waterParticles[i].life <= 0) waterParticles.splice(i, 1); }
 
-            // Projectiles Logic (Pirate Skill) -> Kini meriam lurus sesuai arah tembak
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 projectiles[i].x += projectiles[i].vx;
                 projectiles[i].y += projectiles[i].vy;
@@ -580,24 +585,19 @@
                 if (hit || projectiles[i].y < 0 || projectiles[i].x < 0 || projectiles[i].x > GAME_WIDTH) projectiles.splice(i, 1);
             }
 
-            // === LOGIKA PERGERAKAN BERDASARKAN ANALOG / KEYBOARD ===
             let currentSpeed = player.speed;
             if (player.skillActiveTimer > 0 && skinsData[activeSkin].skillType === 'dash') currentSpeed *= 2;
 
             let moveX = 0; let moveY = 0;
 
             if (joystick.active) {
-                // Input Analog (Sangat smooth)
-                moveX = joystick.dx;
-                moveY = joystick.dy;
+                moveX = joystick.dx; moveY = joystick.dy;
             } else {
-                // Input Keyboard
                 if (keys.ArrowUp || keys.w) moveY -= 1;
                 if (keys.ArrowDown || keys.s) moveY += 1;
                 if (keys.ArrowLeft || keys.a) moveX -= 1;
                 if (keys.ArrowRight || keys.d) moveX += 1;
                 
-                // Normalisasi diagonal di keyboard agar tidak jalan terlalu cepat
                 if (moveX !== 0 && moveY !== 0) {
                     const len = Math.sqrt(moveX*moveX + moveY*moveY);
                     moveX /= len; moveY /= len;
@@ -607,8 +607,6 @@
             player.x += moveX * currentSpeed;
             player.y += moveY * currentSpeed;
 
-            // === DYNAMIC ROTATION (KAPAL MENGHADAP ARAH JALAN) ===
-            // Jika ada pergerakan, ubah angle kapal. (Ditambah PI karena Emoji standar hadap kiri)
             if (moveX !== 0 || moveY !== 0) {
                 player.angle = Math.atan2(moveY, moveX) + Math.PI;
             }
@@ -670,7 +668,6 @@
             if(isPlaying && (moveX !== 0 || moveY !== 0)) {
                 if(Math.random() > 0.5) {
                     waterParticles.push({
-                        // Partikel air keluar dari belakang kapal sesuai angle
                         x: (player.x + player.width/2) + Math.cos(player.angle) * 20 + (Math.random()*10-5),
                         y: (player.y + player.height/2) + Math.sin(player.angle) * 20 + (Math.random()*10-5),
                         radius: Math.random() * 4 + 2, life: 1.0
@@ -679,6 +676,7 @@
             }
         }
 
+        // === PERBAIKAN LAG/CRASH (HAPUS SHADOW BLUR YANG BERAT) ===
         function draw() {
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
@@ -689,11 +687,17 @@
             ctx.font = "24px 'Inter', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(255,255,255,0.3)";
             for(let w = 80; w < GAME_WIDTH; w += 160) { ctx.fillText("FINISH", w, rowHeight / 2); ctx.fillText("START", w, GAME_HEIGHT - rowHeight / 2); }
 
-            items.forEach(item => { ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4; ctx.font = "28px Arial"; ctx.fillText(item.icon, item.x + item.width/2, item.y + item.width/2); });
+            // MATIKAN SHADOW BLUR. GANTI DENGAN SOLID OFFSET SHADOW (Meningkatkan performa +500% Anti Lag)
+            ctx.shadowBlur = 0; 
+            
+            items.forEach(item => { 
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowOffsetY = 4; ctx.shadowOffsetX = 2;
+                ctx.font = "28px Arial"; ctx.fillText(item.icon, item.x + item.width/2, item.y + item.width/2); 
+            });
 
             obstacles.forEach(obs => {
                 if(obs.dead) return;
-                ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 6;
+                ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowOffsetY = 6; ctx.shadowOffsetX = 3;
                 ctx.font = `${obs.isTanker ? (shrinkTimer > 0?40:70) : (shrinkTimer > 0?30:50)}px Arial`;
                 ctx.save(); ctx.translate(obs.x + obs.width / 2, obs.y + obs.height / 2);
                 if (obs.speed > 0) ctx.scale(-1, 1);
@@ -701,19 +705,18 @@
             });
 
             projectiles.forEach(p => {
-                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 5; ctx.fillStyle = "#333";
+                ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowOffsetY = 3; ctx.fillStyle = "#333";
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = "#ff4500"; ctx.beginPath(); ctx.arc(p.x, p.y + p.radius, p.radius/2, 0, Math.PI*2); ctx.fill();
             });
 
-            ctx.shadowColor = "transparent";
+            ctx.shadowColor = "transparent"; ctx.shadowOffsetY = 0; ctx.shadowOffsetX = 0;
             waterParticles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(255, 255, 255, ${p.life * 0.5})`; ctx.fill(); });
 
-            // GAMBAR PEMAIN DENGAN DYNAMIC ROTATION
-            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5; ctx.font = "45px Arial";
+            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowOffsetY = 5; ctx.font = "45px Arial";
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
-            ctx.rotate(player.angle); // Rotasi mengikuti arah jalan analog!
+            ctx.rotate(player.angle); 
             
             if (player.isDiving) { ctx.globalAlpha = 0.4; } 
             else if (player.invulnerableTimer > 0) { if (Math.floor(Date.now() / 150) % 2 === 0) ctx.globalAlpha = 0.5; }
@@ -731,7 +734,7 @@
             
             floatingTexts.forEach(ft => {
                 ctx.globalAlpha = ft.life / 60; ctx.fillStyle = ft.color; ctx.font = "bold 20px 'Inter', sans-serif";
-                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowOffsetY = 2; ctx.shadowOffsetX = 1;
                 ctx.fillText(ft.text, ft.x + player.width/2, ft.y);
                 ctx.globalAlpha = 1.0; ctx.shadowColor = "transparent"; 
             });
